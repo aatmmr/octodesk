@@ -1,0 +1,30 @@
+---
+name: Repository Request
+description: Request a new repository in your organization.
+title: "Repository Request"
+labels: [repo-request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🥳 We love to see you getting started with a new project!
+        
+        This form and process was created to make sure we can help you as quickly as possible while keeping our governance and compliance on track.
+        
+        Please fill out the following information to request a new repository in your organization. Once you submit the form, we will review your request and the repository will be created automatically with some basic best practices in place.
+  - type: dropdown
+    attributes:
+      label: Visibility
+      options:
+        - public
+        - internal
+        - private
+      default: 0
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Name
+      description: Name of the Repository
+    validations:
+      required: true

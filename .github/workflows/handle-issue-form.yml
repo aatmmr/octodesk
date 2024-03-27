@@ -1,0 +1,16 @@
+name: Handle Issue Form
+
+on: 
+  issues:
+    types:
+      - labeled
+
+permissions:
+  issues: write
+
+jobs:
+  on-repository-request:
+    name: "Repository Request"
+    if: github.event.label.name == 'repo-request'
+    uses: ./.github/workflows/handle-request-repository.yml
+    secrets: inherit

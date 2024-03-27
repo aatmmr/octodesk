@@ -11,7 +11,7 @@ body:
         
         This form and process was created to make sure we can help you as quickly as possible while keeping our governance and compliance on track.
         
-        Please fill out the following information to request a new repository in your organization. Once you submit the form, we will review your request and the repository will be created automatically with some basic best practices in place.
+        Please fill out the following information to request a new repository in our organization. Once you submit the form the repository will be created automatically with some basic best practices in place.
   - type: dropdown
     attributes:
       label: Visibility

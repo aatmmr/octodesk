@@ -1,0 +1,32 @@
+name: Handle Repository Request
+
+on:
+  workflow_call:
+
+env:
+  USER: ${{ github.event.issue.user.login }}
+
+jobs:
+  notify:
+    name: "Notify Request Issue"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Add In Progress Comment To Issue
+        uses: ./.github/actions/comment-issue
+        with:
+          message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
+      - name: Create Repository
+        id: create-repo
+        uses: ./.github/actions/repository-create
+      - name: Add Failure Comment To Issue
+        if: failure()
+        uses: ./.github/actions/comment-issue
+        with:
+          message: "@${USER} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details."
+      - name: Close Issue With Success Comment
+        if: success()
+        uses: ./.github/actions/close-issue
+        with:
+          message: "@${USER} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"

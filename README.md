@@ -1,3 +1,3 @@
-# 🤔 How to Create Repositories Using Issue Forms
+# 🧑‍🔧 Service Desk
 
-A demo how issue forms can be used to create repositories.
+This repository builds a template of a self-service approach for GitHub governance. It is a collection of Workflows, Actions, Issue forms and Automation to help you manage your GitHub organization.

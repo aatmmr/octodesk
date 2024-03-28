@@ -14,16 +14,20 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CONFIG_FILE: config/general.yml
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Create Labels
+      - name: Create Configured Labels
         run: |
-          labels=$(yq e '.issue_labels' config/general.yml)
-          for label in ${labels[@]}
-          do
-            gh label create $label.name -c $label.color -d $label.description -f
-          done
+          length=$(yq e '.issue-labels | length' $CONFIG_FILE)
+          for ((i=0; i<$length; i++))
+            do
+              name=$(yq e ".issue-labels[$i].name" $CONFIG_FILE)
+              color=$(yq e ".issue-labels[$i].color" $CONFIG_FILE)
+              description=$(yq e ".issue-labels[$i].description" $CONFIG_FILE)
+              gh label create "$name" -d "$description" -c "$color" -f
+            done
 
 
     

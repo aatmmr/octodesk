@@ -1,0 +1,4 @@
+issue-labels:
+  - name: repo-request
+    description: Issues that are requesting a new repository to be created
+    color: 51829B

@@ -1,0 +1,29 @@
+name: Initialising Octodesk
+
+on:
+  create:
+  workflow_dispatch: 
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  initialise:
+    name: Initialise Octodesk
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Create Labels
+        run: |
+          labels=$(yq e '.issue_labels' config/general.yml)
+          for label in ${labels[@]}
+          do
+            gh label create $label.name -c $label.color -d $label.description -f
+          done
+
+
+    

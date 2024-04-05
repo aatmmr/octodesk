@@ -1,0 +1,36 @@
+name: Create Repository
+description: Create a new repository
+
+inputs:
+  repo-name:
+    description: Repository Name
+    required: true
+    type: string
+  visibility:
+    description: Repository Visibility
+    required: true
+    type: string
+  token:
+    description: Token used for GitHub API calls
+    required: true
+
+outputs:
+  repo-url:
+    description: The URL of the created repository
+    value: ${{ steps.create-repo.outputs.repo_url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create Repository
+      id: create-repo
+      shell: bash
+      env:
+        DEFAULT_BRANCH: main
+        GH_TOKEN: ${{ inputs.token }}
+        REPO_OWNER: ${{ github.repository_owner }}
+        REPO_NAME: ${{ inputs.repo-name }}
+        VISIBILITY: ${{ inputs.visibility }}
+      run: |
+        REPO_URL=$(gh repo create $REPO_OWNER/$REPO_NAME --$VISIBILITY --clone)
+        echo "repo_url=$REPO_URL" >> "$GITHUB_OUTPUT"

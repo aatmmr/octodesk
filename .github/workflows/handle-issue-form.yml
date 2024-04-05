@@ -6,11 +6,16 @@ on:
       - labeled
 
 permissions:
+  contents: read
+  actions: write
   issues: write
 
-jobs:
+jobs:  
   on-repository-request:
     name: "Repository Request"
     if: github.event.label.name == 'repo-request'
-    uses: ./.github/workflows/handle-request-repository.yml
     secrets: inherit
+    uses: ./.github/workflows/handle-request-repository.yml
+    with:
+      repo-name: demo-repo
+      visibility: private

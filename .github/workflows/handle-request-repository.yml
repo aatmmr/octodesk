@@ -2,31 +2,56 @@ name: Handle Repository Request
 
 on:
   workflow_call:
+    inputs:
+      repo-name:
+        description: Repository Name
+        required: true
+        type: string
+      visibility:
+        description: Repository Visibility
+        required: true
+        type: string
 
 env:
   USER: ${{ github.event.issue.user.login }}
 
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
 jobs:
   notify:
-    name: "Notify Request Issue"
+    name: "Create Repository"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Get Token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.OCTODESK_APP_ID }}
+          private-key: ${{ secrets.OCTODESK_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
       - name: Add In Progress Comment To Issue
-        uses: ./.github/actions/comment-issue
+        uses: ./.github/actions/issue-comment
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
       - name: Create Repository
         id: create-repo
         uses: ./.github/actions/repository-create
+        with:
+          repo-name: ${{ inputs.repo-name }}
+          visibility: ${{ inputs.visibility }}
+          token: ${{ steps.app-token.outputs.token }}
       - name: Add Failure Comment To Issue
         if: failure()
-        uses: ./.github/actions/comment-issue
+        uses: ./.github/actions/issue-comment
         with:
           message: "@${USER} the repository provisioning failed...check the [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) for details."
       - name: Close Issue With Success Comment
         if: success()
-        uses: ./.github/actions/close-issue
+        uses: ./.github/actions/issue-close
         with:
           message: "@${USER} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"

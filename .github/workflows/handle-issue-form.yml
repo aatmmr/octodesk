@@ -15,7 +15,7 @@ jobs:
     name: "Repository Request"
     if: github.event.label.name == 'repo-request'
     secrets: inherit
-    uses: ./.github/workflows/handle-request-repository.yml
+    uses: ./.github/workflows/handle-repository-creation.yml
     with:
       repo-name: demo-repo
       visibility: private

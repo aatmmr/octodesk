@@ -1,3 +1,4 @@
+host: github.com
 issue-labels:
   - name: repo-request
     description: Issues that are requesting a new repository to be created

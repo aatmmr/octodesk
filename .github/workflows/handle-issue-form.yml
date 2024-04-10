@@ -17,5 +17,4 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/handle-repository-creation.yml
     with:
-      repo-name: demo-repo
       visibility: private

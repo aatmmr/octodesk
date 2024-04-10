@@ -35,6 +35,7 @@ runs:
         echo "host=$host" >> "$GITHUB_OUTPUT"
     - name: Create Repository with Configuration
       shell: bash
+      id: create-repo
       env:
         CONFIG_FILE: config/repositories.yml
         GH_TOKEN: ${{ inputs.token }}
@@ -54,6 +55,7 @@ runs:
           -F has_issues=$(yq e '.repository.has_issues' $CONFIG_FILE) \
           -F has_projects=$(yq e '.repository.has_projects' $CONFIG_FILE) \
           -F has_wiki=$(yq e '.repository.has_wiki' $CONFIG_FILE) \
-          -F has_downloads=$(yq e '.repository.has_downloads' $CONFIG_FILE)
+          -F has_downloads=$(yq e '.repository.has_downloads' $CONFIG_FILE) > repo-response.json
+        echo "repo_url=$(yq e '.html_url' repo-response.json)" >> "$GITHUB_OUTPUT"
 
 

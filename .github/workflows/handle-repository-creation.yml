@@ -3,10 +3,6 @@ name: Handle Repository Request
 on:
   workflow_call:
     inputs:
-      repo-name:
-        description: Repository Name
-        required: true
-        type: string
       visibility:
         description: Repository Visibility
         required: true
@@ -38,11 +34,39 @@ jobs:
         uses: ./.github/actions/issue-comment
         with:
           message: "@${USER} a [workflow]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) was started to handle your request"
+      - name: Parse Issue Form into JSON
+        id: parse
+        uses: zentered/issue-forms-body-parser@v2.2.0
+      - name: Get Attributes from Form
+        id: issue-values
+        env:
+          JSON: ${{ steps.parse.outputs.data }}
+          LC_ALL: "C"
+        run: |
+          function github_name() {
+            echo $1 \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -r 's/[\t ]+/-/g' \
+            | sed -r 's/[^a-z0-9ß-ü\-]+/-/g' \
+            | sed -e 's/ä/ae/g' -e 's/ö/oe/g' -e 's/ü/ue/g' -e 's/ß/ss/g' \
+            | sed -r 's/[-]+/-/g' \
+            | sed -r 's/^[-]//' \
+            | sed -r 's/[-]$//'
+          }
+          function github_name_array() {
+            array=""
+            for item in $(echo $1 | tr " " "-" | tr "," " "); do
+              array+="$(github_name $item),"
+            done
+            echo $array | sed 's/.$//'
+          }
+          NAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
+          echo "repo_name=${NAME}" >> "$GITHUB_OUTPUT"
       - name: Create Repository
         id: create-repo
         uses: ./.github/actions/repository-create
         with:
-          repo-name: ${{ inputs.repo-name }}
+          repo-name: ${{ steps.issue-values.outputs.repo_name }}
           visibility: ${{ inputs.visibility }}
           token: ${{ steps.app-token.outputs.token }}
       - name: Add Failure Comment To Issue
@@ -53,5 +77,7 @@ jobs:
       - name: Close Issue With Success Comment
         if: success()
         uses: ./.github/actions/issue-close
+        env:
+          REPO_URL: ${{ steps.create-repo.outputs.repo-url }}
         with:
-          message: "@${USER} your repository was created and is now accessible here: ${{ steps.create-repo.outputs.repo_url }}"
+          message: "@${USER} your repository was created and is now accessible here: ${REPO_URL}"

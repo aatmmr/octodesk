@@ -20,6 +20,7 @@ jobs:
   notify:
     name: "Create Repository"
     runs-on: ubuntu-latest
+    environment: repositories
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

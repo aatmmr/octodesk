@@ -10,6 +10,7 @@ jobs:
   notify:
     name: "Add User to Team"
     runs-on: ubuntu-latest
+    environment: teams
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4

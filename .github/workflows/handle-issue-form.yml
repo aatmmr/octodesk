@@ -18,3 +18,8 @@ jobs:
     uses: ./.github/workflows/handle-repository-creation.yml
     with:
       visibility: private
+  on-team-membership-request:
+    name: "Team Membership Request"
+    if: github.event.label.name == 'team-membership-request'
+    secrets: inherit
+    uses: ./.github/workflows/handle-team-membership-request.yml

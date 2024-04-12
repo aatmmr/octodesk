@@ -1,0 +1,26 @@
+---
+name: Team Membership Request
+description: Request a new Team Membership.
+title: "Team Membership Request"
+labels: [team-membership-request]
+body:
+  - type: markdown
+    attributes:
+      value: |     
+        This form and process was created to make sure we can help you as quickly as possible while keeping our governance and compliance on track.
+        
+        Please type the GitHub handle of the user and select the team. The user will be added to the team automatically.
+  - type: input
+    attributes:
+      label: Handle
+      description: GitHub handle of the user. Please type the username **without** the `@` symbol.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Team
+      options:
+        - demo
+      default: 0
+    validations:
+      required: true

@@ -1,0 +1,51 @@
+name: Add User to Team
+description: Adds User to a Team
+
+inputs:
+  handle:
+    description: Handle of User
+    required: true
+    type: string
+  team:
+    description: Name of the Team
+    required: true
+    type: string
+  token:
+    description: Token used for GitHub API calls
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get GitHub Host Name
+      id: get-host
+      shell: bash
+      env:
+        CONFIG_FILE: config/general.yml
+      run: |
+        host=$(yq e '.host' $CONFIG_FILE)
+        if [ -z "$host" ]; then
+          host="github.com"
+        fi
+        echo "host=$host" >> "$GITHUB_OUTPUT"
+    - name: Add User to Team
+      shell: bash
+      id: add-to-team
+      env:
+        HOST: ${{ steps.get-host.outputs.host }}
+        ORG: ${{ github.repository_owner }}
+        HANDLE: ${{ inputs.handle }}
+        TEAM: ${{ inputs.team }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        gh api \
+          --method PUT \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          --hostname $HOST \
+          /orgs/$ORG/teams/$TEAM/memberships/$HANDLE > team-response.json
+        echo "team_url=$(yq e '.url' team-response.json)" >> "$GITHUB_OUTPUT"
+
+      
+
+

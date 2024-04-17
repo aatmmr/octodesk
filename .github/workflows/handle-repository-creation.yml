@@ -62,14 +62,37 @@ jobs:
             echo $array | sed 's/.$//'
           }
           NAME=$(github_name "$(echo $JSON | jq -r '.name.text')")
+          TEAM=$(github_name "$(echo $JSON | jq -r '.team.text' | sed -E 's/ -.*//')")
           echo "repo_name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "team_name=${TEAM}" >> "$GITHUB_OUTPUT"
       - name: Create Repository
         id: create-repo
         uses: ./.github/actions/repository-create
         with:
           repo-name: ${{ steps.issue-values.outputs.repo_name }}
+          team-name: ${{ steps.issue-values.outputs.team_name }}
           visibility: ${{ inputs.visibility }}
           token: ${{ steps.app-token.outputs.token }}
+      - name: Add team to repository
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ steps.issue-values.outputs.repo_name }}
+          TEAM_NAME: ${{ steps.issue-values.outputs.team_name }}
+        run: |
+          team_id=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /orgs/$REPO_OWNER/teams/$TEAM_NAME | jq -r '.id')
+          if [ -n "$team_id" ]; then
+            gh api \
+            --method PUT \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /orgs/$REPO_OWNER/teams/$TEAM_NAME/repos/$REPO_OWNER/$REPO_NAME
+          else
+            echo ::error title={title}::{"Team not found"}
+          fi
       - name: Add Failure Comment To Issue
         if: failure()
         uses: ./.github/actions/issue-comment

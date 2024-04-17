@@ -10,6 +10,10 @@ inputs:
     description: Repository Visibility
     required: true
     type: string
+  team-name:
+    description: Team to add to the repository
+    required: true
+    type: string
   token:
     description: Token used for GitHub API calls
     required: true
@@ -57,5 +61,6 @@ runs:
           -F has_wiki=$(yq e '.repository.has_wiki' $CONFIG_FILE) \
           -F has_downloads=$(yq e '.repository.has_downloads' $CONFIG_FILE) > repo-response.json
         echo "repo_url=$(yq e '.html_url' repo-response.json)" >> "$GITHUB_OUTPUT"
+
 
 

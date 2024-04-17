@@ -5,7 +5,7 @@ on:
   workflow_dispatch: 
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -13,12 +13,21 @@ jobs:
     name: Initialise Octodesk
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CONFIG_FILE: config/general.yml
+      REPO_REQUEST_TEMPLATE: .github/ISSUE_TEMPLATE/repository-request.yml
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+      - name: Get Token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.OCTODESK_APP_ID }}
+          private-key: ${{ secrets.OCTODESK_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
       - name: Create Configured Labels
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           length=$(yq e '.issue-labels | length' $CONFIG_FILE)
           for ((i=0; i<$length; i++))
@@ -28,6 +37,39 @@ jobs:
               description=$(yq e ".issue-labels[$i].description" $CONFIG_FILE)
               gh label create "$name" -d "$description" -c "$color" -f
             done
+      - name: Get Teams
+        uses: ./.github/actions/teams-get
+        id: teams
+        with:
+          organization: ${{ github.repository_owner }}
+          token: ${{ steps.app-token.outputs.token }}
+      - name: Add Available Teams Into Template
+        env:
+          JSON: ${{ steps.teams.outputs.json }}
+        run: |
+          TEAMS=$( echo $JSON \
+            | jq -r '.[] | "- " + .name + (.description | if . == "" then . else " - " + . end)' \
+            | sort ) \
+            yq -i '(.body[] | select(.type=="dropdown" and .attributes.label=="Team") | .attributes.options) |=env(TEAMS)' \
+            $REPO_REQUEST_TEMPLATE
+      - name: Determine Changes
+        id: change-detection
+        run: |
+          if (git diff --quiet $REPO_REQUEST_TEMPLATE)
+          then 
+            echo changed=false >> "$GITHUB_OUTPUT"
+          else 
+            echo changed=true >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit Changes as Octodesk Bot
+        if: ${{ steps.change-detection.outputs.changed == 'true' }}
+        run: |
+          git config --global user.name '${{ vars.OCTODESK_USER_NAME }}'
+          git config --global user.email '${{ vars.OCTODESK_USER_EMAIL }}'
+          git add $REPO_REQUEST_TEMPLATE
+          git commit -m "chore(org): updating team in repository request form"
+          git push
 
 
-    
+
+  

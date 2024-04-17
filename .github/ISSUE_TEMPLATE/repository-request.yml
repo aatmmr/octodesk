@@ -28,3 +28,10 @@ body:
       description: Name of the Repository
     validations:
       required: true
+  - type: dropdown
+    attributes:
+      label: Team
+      options:
+        - Placeholder
+    validations:
+      required: true
